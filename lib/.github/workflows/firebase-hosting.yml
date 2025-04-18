@@ -3,28 +3,34 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches:
-      - main
+      - main  # Trigger the workflow when code is pushed to the main branch
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest  # Runs on the latest version of Ubuntu
+    
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout code
+        uses: actions/checkout@v2  # Checkout your code
+        
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2  # Set up Flutter SDK
         with:
-          node-version: '18'
-
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
+          flutter-version: '3.7.2'  # Ensure we are using the correct Flutter version
+    
+      - name: Install dependencies
+        run: |
+          flutter pub get  # Fetch dependencies for the Flutter project
+    
+      - name: Build Flutter web
+        run: |
+          flutter build web --release  # Build the Flutter web app in release mode
+    
+      - name: Set up Firebase CLI
+        uses: wzieba/Firebase-CLI-Github-Action@v2.2.0  # Set up Firebase CLI
+        
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{secrets.FIREBASE_SERVICE_ACCOUNT}}'
-          channelId: live
-          projectId: mlearnpro-3a850
+        run: |
+          firebase deploy --only hosting --token ${{ secrets.FIREBASE_AUTH_TOKEN }}  # Deploy to Firebase Hosting
+        env:
+          FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}  # Make sure to set this secret in your repository settings
